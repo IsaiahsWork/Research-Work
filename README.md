@@ -1,167 +1,138 @@
-Exploring Renewable Energy Trends: A Data-Driven Investigation
+* * * * *
 
-🚗 The Spark: How a Daily Commute Led to a Data-Driven Discovery
-As I drove through my neighborhood, I couldn't help but notice an increasing number of solar panels on rooftops. This made me wonder—has renewable energy consumption truly increased over time, or is this just an isolated trend?
+🌱 Exploring U.S. Renewable Energy Trends: A Data-Driven Investigation (2015--2021)
+==================================================================================
 
-With this question in mind, I turned to data. Using publicly available datasets from the U.S. Energy Information Administration (EIA), I set out to analyze trends in renewable energy production and consumption from 2015 to 2021.
+As the federal government aggressively pushes for a clean energy future---backed by major legislative initiatives like the Bipartisan Infrastructure Law and the Inflation Reduction Act---understanding the actual trajectory of renewable energy is critical. With 600,000 federal vehicles transitioning to electric and 300,000 federal buildings adopting clean energy, the macro-level data must support these sustainability goals.
 
-📊 Data-Driven Approach: SQL, Python & Power BI
+Using publicly available datasets from the [U.S. Energy Information Administration (EIA)](https://www.eia.gov/opendata/), I set out to analyze the true growth rate of renewable energy production and consumption in the United States from 2015 to 2021.
 
-To uncover key insights, I used:
+* * * * *
 
-SQL to extract, filter, and clean data on renewable energy consumption and production.
-Python (pandas, matplotlib, seaborn, scikit-learn) for linear regression modeling to analyze growth trends.
-Power BI to create interactive dashboards showcasing state-wise energy trends.
+🛠️ Tech Stack & Methodology
+----------------------------
 
-I focused on answering:
+-   **SQL:** Extracted, filtered, and cleaned raw time-series data from the EIA database.
 
-✔️ Which states consume the most renewable energy?
+-   **Python (Pandas, Matplotlib, Scikit-Learn):** Performed linear regression modeling to analyze growth trajectories and forecast trends.
 
-✔️ Which states produce the most renewable energy?
+-   **Power BI:** Created interactive dashboards to showcase state-wise energy adoption.
 
-✔️ How has renewable energy production and consumption changed over time?
+* * * * *
 
-✔️ Are there patterns indicating future growth or decline?
+💾 1. Data Extraction (SQL)
+---------------------------
 
-📣 How This Ties into Federal Sustainability Goals
+To ensure data consistency, I extracted both Production and Consumption metrics in a single optimized query, filtering for the target timeframe (2015--2021) and removing null or incomplete data points.
 
-The federal government is aggressively pushing for a clean energy future, backed by major legislative initiatives:
+SQL
 
-✅ The Bipartisan Infrastructure Law – Investing in modernizing energy infrastructure.
-
-✅ The Build Back Better Act – Funding renewable energy projects.
-
-✅ The Inflation Reduction Act – Driving $80 billion in private investment in clean energy manufacturing.
-
-With 600,000 federal vehicles transitioning to electric and 300,000 federal buildings adopting clean energy, analyzing these trends is critical for understanding the impact of sustainability efforts.
-
-
-```sql
-SELECT
-	Description,
-	YYYYMM,
-	Unit,
-	Value
-FROM
-	PROD
-WHERE
-	Description = 'Total Renewable Energy Production' and YYYYMM >= 200901 AND
-	value < 1;
-ORER BY
-	YYYYMM DESC
 ```
-```sql
 SELECT
-	Description,
-	YYYYMM,
-	Unit,
-	Value
+    Description,
+    YYYYMM,
+    Unit,
+    Value
 FROM
-	PROD
+    PROD
 WHERE
-	Description = 'Total Renewable Energy Consumption' and YYYYMM >= 200901 AND
-	value < 1;
-ORER BY
-	YYYYMM DESC
+    Description IN ('Total Renewable Energy Production', 'Total Renewable Energy Consumption')
+    AND YYYYMM >= 201501
+    AND Value IS NOT NULL
+ORDER BY
+    YYYYMM DESC;
+
 ```
-I consolidated the datasets into a single sheet, ensuring data consistency by cleaning and formatting the entries. To provide a clearer analysis, I excluded years where relevant technology had not yet emerged, allowing for a more accurate representation of the U.S.'s renewable energy trends. Finally, I uploaded the cleaned dataset into Power BI, where I began the visual analysis to uncover key insights.
 
-1. Importing libraries and cleaned tables to Jupyter Notebook for Regression Analysis.
+* * * * *
 
-```python
+📈 2. Predictive Modeling (Python)
+----------------------------------
+
+After cleaning the datasets and isolating the production (`dp`) and consumption (`dc`) data frames, I used `scikit-learn` to build a Linear Regression model. This allowed me to visualize the historical trendlines and identify the rate of growth over time.
+
+Python
+
+```
 import pandas as pd
-import matplotlib.pyplot as plt
 import numpy as np
-
-urlp = 'https://raw.githubusercontent.com/IsaiahsWork/Research-Work/main/EDITP.csv'
-urlc = 'https://raw.githubusercontent.com/IsaiahsWork/Research-Work/main/EDITC.csv'
-
-dc = pd.read_csv(urlc)
-dp = pd.read_csv(urlp)
-```
-2. Extracting Data from DataFrames
-
-```python
-xc = dc.iloc[:,1].values
-yc = dc.iloc[:,2].values
-xp = dp.iloc[:,1].values
-yp = dp.iloc[:,2].values
-```
-3. Plotting the Data
-
-```python
-plt.scatter(xc,yc)
-plt.scatter(xp,yp)
-plt.xlabel("Time")
-plt.ylabel("Quadrillion Btu")
-```
-![download](https://github.com/user-attachments/assets/6efe4ca8-c63b-46a2-b783-3fba06375fb8)
-
-4. Create Visualization of production
-
-```python
+import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
-xc_train, xc_test, yc_train, yc_test = train_test_split(xc, yc, test_size=0.2, random_state=0)
-xp_train, xp_test, yp_train, yp_test = train_test_split(xp, yp, test_size=0.2, random_state=0)
-xp_train
-```
-```python
-xp_train = np.array(xp_train).reshape(-1,1)
-xc_train = np.array(xc_train).reshape(-1,1)
-xp_test = np.array(xp_test).reshape(-1,1)
-xc_test = np.array(xc_test).reshape(-1,1)
-xp_train
-```
-```python
 from sklearn.linear_model import LinearRegression
-plr = LinearRegression()
-clr = LinearRegression()
-```
-```python
-cc = clr.intercept_
-pc = plr.intercept_
-```
-```python
-cm = clr.coef_
-pm = plr.coef_
-```
-```python
-YP_pred_train = pm*xp_train+pc
-YC_pred_train = cm*xc_train+cc
-YP_pred_train.flatten()
-YC_pred_train.flatten()
-```
-```python
-plt.scatter(xc_train,yc_train)
-plt.scatter(xp_train,yp_train)
-plt.plot(xp_train, YP_pred_train, color='red')
-plt.plot(xc_train, YC_pred_train, color='green')
-plt.xlabel("Time")
+
+# 1. Load Cleaned Data
+url_prod = 'https://raw.githubusercontent.com/IsaiahsWork/Research-Work/main/EDITP.csv'
+url_cons = 'https://raw.githubusercontent.com/IsaiahsWork/Research-Work/main/EDITC.csv'
+
+df_cons = pd.read_csv(url_cons)
+df_prod = pd.read_csv(url_prod)
+
+# 2. Extract Features (Time) and Target (Quadrillion Btu)
+X_cons = df_cons.iloc[:, 1].values.reshape(-1, 1)
+y_cons = df_cons.iloc[:, 2].values
+
+X_prod = df_prod.iloc[:, 1].values.reshape(-1, 1)
+y_prod = df_prod.iloc[:, 2].values
+
+# 3. Train/Test Split (80% Training, 20% Testing)
+Xc_train, Xc_test, yc_train, yc_test = train_test_split(X_cons, y_cons, test_size=0.2, random_state=0)
+Xp_train, Xp_test, yp_train, yp_test = train_test_split(X_prod, y_prod, test_size=0.2, random_state=0)
+
+# 4. Initialize and Train Linear Regression Models
+cons_model = LinearRegression()
+cons_model.fit(Xc_train, yc_train)
+
+prod_model = LinearRegression()
+prod_model.fit(Xp_train, yp_train)
+
+# 5. Generate Predictions for Trendlines
+yc_pred = cons_model.predict(Xc_train)
+yp_pred = prod_model.predict(Xp_train)
+
+# 6. Visualize the Trends
+plt.figure(figsize=(10, 6))
+plt.scatter(Xc_train, yc_train, color='lightgreen', label='Consumption Data', alpha=0.6)
+plt.scatter(Xp_train, yp_train, color='lightcoral', label='Production Data', alpha=0.6)
+
+plt.plot(Xc_train, yc_pred, color='green', linewidth=2, label='Consumption Trend')
+plt.plot(Xp_train, yp_pred, color='red', linewidth=2, label='Production Trend')
+
+plt.title('Renewable Energy: Production vs. Consumption (2015-2021)')
+plt.xlabel("Time (YYYYMM)")
 plt.ylabel("Quadrillion Btu")
+plt.legend()
+plt.grid(True, linestyle='--', alpha=0.7)
+plt.show()
+
 ```
-![download](https://github.com/user-attachments/assets/851f38b9-7fdb-490c-8a29-020cc285fb23)
+
+'![download](https://github.com/user-attachments/assets/6efe4ca8-c63b-46a2-b783-3fba06375fb8)'
+
+* * * * *
+
+📊 3. Geographic Visual Analysis (Power BI)
+-------------------------------------------
+
+'![download](https://github.com/IsaiahsWork/Renewable_Energy_Analysis_USA/blob/be1e22d814e7f50008208d754b06f7763fbb9c6f/Screenshot%20(856).png)'
+
+By integrating this cleaned data into Power BI, I was able to map the data geographically to answer key state-level questions regarding infrastructure adoption.
+
+* * * * *
 
 🔍 Key Findings & Insights
+--------------------------
 
-📈 Renewable energy consumption has steadily increased, particularly in states with high solar adoption (e.g., California, Texas).
+-   📈 **Consumption outpaces uniform adoption:** Renewable energy consumption has steadily increased overall, but the data is heavily skewed by early-adopter states with high solar/wind infrastructure (e.g., California, Texas).
 
-📉 Some states still rely heavily on fossil fuels, highlighting gaps in adoption.
+-   📉 **Fossil Fuel Reliance:** Several states show stagnant renewable growth, indicating a continued reliance on legacy fossil fuel grids and highlighting major geographical gaps in adoption.
 
-🔄 Production is growing but not at the same rate as consumption, indicating possible future supply chain bottlenecks.
+-   🔄 **The Production/Consumption Gap:** While production is growing, the regression models indicate it is not always scaling at the exact same rate as consumption demand, hinting at potential future supply chain bottlenecks or grid storage limitations.
 
+* * * * *
 
-💡 What I Learned
+💡 Conclusion
+-------------
 
-This project deepened my understanding of:
+This project demonstrates the entire data lifecycle---from extracting raw government data using SQL, to predictive modeling in Python, to executive-level visualization in Power BI. Understanding these trends is the first step in optimizing energy distribution for a carbon-neutral future.
 
-✅ SQL for large-scale data extraction and transformation
-
-✅ Python for trend analysis & predictive modeling
-
-✅ Power BI for dynamic, interactive visual storytelling
-
-This hands-on experience strengthened my ability to turn raw data into actionable insights—a key skill in the field of data analytics and business intelligence.
-Would love to hear your thoughts! 🚀
-
-I downloaded the data from the years 2015 to 2021 on the website
-This research was built on using data retrieved from the [U.S. Energy Information Administration (EIA)](https://www.eia.gov/opendata/).
+👉 Connect with me on [LinkedIn](https://www.linkedin.com/in/isaiah-l-wright/) to discuss data analytics, energy grid optimization, and Python forecasting models.
